@@ -1,17 +1,3 @@
-variable "eks_cluster_id" {
-  description = "The ID of the EKS cluster."
-}
-
-variable "namespace" {
-  description = "The name of the Kubernetes namespace."
-  type        = string
-}
-
-variable "stack_name" {
-  description = "The name of the Helm chart release."
-  type        = string
-}
-
 resource "kubernetes_namespace" "monitoring" {
   depends_on = [
     var.eks_cluster_id
@@ -29,7 +15,6 @@ resource "helm_release" "kube-prometheus" {
 
   name       = var.stack_name
   namespace  = var.namespace
-  version    = var.version
   repository = "https://github.com/theArcianCoder/monitoring-setup.git"
   chart      = "kube-prometheus-stack"
 
