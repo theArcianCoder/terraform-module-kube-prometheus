@@ -11,8 +11,3 @@ variable "stack_name" {
   description = "The name of the Helm chart release."
   type        = string
 }
-
-variable "version" {
-  description = "The version of the Helm chart."
-  type        = string
-}
