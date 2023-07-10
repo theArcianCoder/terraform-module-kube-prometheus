@@ -12,11 +12,6 @@ variable "stack_name" {
   type        = string
 }
 
-variable "version" {
-  description = "The version of the Helm chart."
-  type        = string
-}
-
 resource "kubernetes_namespace" "monitoring" {
   depends_on = [
     var.eks_cluster_id
