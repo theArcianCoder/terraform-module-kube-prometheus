@@ -10,12 +10,12 @@ resource "kubernetes_namespace" "monitoring" {
 
 resource "helm_release" "kube-prometheus" {
   depends_on = [
-    kubernetes_namespace.monitoring
+    kubernetes_namespace.monitoringhttps://github.com/prometheus-community/helm-charts.git
   ]
 
   name       = var.stack_name
   namespace  = var.namespace
-  repository = "https://raw.githubusercontent.com/theArcianCoder/helm-chart/main"
+  repository = "https://github.com/prometheus-community/helm-charts/"
   chart      = "kube-prometheus-stack"
 
   set {
