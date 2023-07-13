@@ -10,7 +10,7 @@ resource "kubernetes_namespace" "monitoring" {
 
 resource "helm_release" "kube-prometheus" {
   depends_on = [
-    kubernetes_namespace.monitoringhttps://github.com/prometheus-community/helm-charts.git
+    kubernetes_namespace.monitoring
   ]
 
   name       = var.stack_name
