@@ -42,4 +42,16 @@ resource "helm_release" "kube-prometheus" {
     name  = "grafana.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/healthcheck-protocol"
     value = "HTTP"
   }
+  set {
+    name  = "alertmanager.persistentVolume.existingClaim"
+    value = "kube-prometheus-stack-pvc"
+  }
+  set {
+    name  = "server.persistentVolume.existingClaim"
+    value = "kube-prometheus-stack-pvc"
+  }
+  set {
+    name  = "grafana.persistentVolume.existingClaim"
+    value = "kube-prometheus-stack-pvc"
+  }
 }
