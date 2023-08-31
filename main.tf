@@ -15,7 +15,7 @@ resource "helm_release" "kube-prometheus" {
 
   name       = var.stack_name
   namespace  = var.namespace    
-  repository = "https://raw.githubusercontent.com/theArcianCoder/helm-chart-ttn/main"
+  repository = "https://raw.githubusercontent.com/theArcianCoder/helm-chart/main"
   chart      = "kube-prometheus-stack"
 
   set {
