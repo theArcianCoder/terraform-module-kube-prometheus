@@ -13,3 +13,6 @@ variable "stack_name" {
 variable "ebs_volume_id" {
   description = "The ID of the ebs volume."
 }
+variable "cluster_name" {
+  description = "Name of the EKS cluster"
+}
