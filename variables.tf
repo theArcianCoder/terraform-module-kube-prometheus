@@ -10,3 +10,6 @@ variable "stack_name" {
   description = "The name of the Helm chart release."
   type        = string
 }
+variable "ebs_volume_id" {
+  description = "The ID of the ebs volume."
+}
