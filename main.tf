@@ -8,27 +8,45 @@ resource "kubernetes_namespace" "monitoring" {
   }
 }
 
-resource "null_resource" "kubectl_apply" {
+resource "kubectl_manifest" "pv" {
   depends_on = [kubernetes_namespace.monitoring]
+  yaml_body = <<YAML
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kube-prometheus-stack-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"  # Update with the appropriate StorageClass name
+  awsElasticBlockStore:
+    volumeID: ${var.ebs_volume_id}  # Replace with your EBS volume ID
+    fsType: ext4
+YAML
+}
 
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-
-  provisioner "local-exec" {
-    command = "kubectl apply -k github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
-  }
-  provisioner "local-exec" {
-    command = "kubectl apply -f https://raw.githubusercontent.com/theArcianCoder/helm-volume/main/pv.yaml -n monitoring"
-  }
-  provisioner "local-exec" {
-    command = "kubectl apply -f https://raw.githubusercontent.com/theArcianCoder/helm-volume/main/pvc.yaml -n monitoring"
-  }
+resource "kubectl_manifest" "pvc" {
+  depends_on = [kubernetes_manifest.pv]
+  yaml_body = <<YAML
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kube-prometheus-stack-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: kube-prometheus-stack-pv
+YAML
 }
 
 resource "helm_release" "kube-prometheus" {
   depends_on = [
-    null_resource.kubectl_apply
+    kubectl_manifest.pvc
   ]
 
   name       = var.stack_name
