@@ -22,6 +22,7 @@ data "aws_eks_cluster" "cluster" {
 data "aws_eks_cluster_auth" "cluster" {
   name = var.cluster_name
 }
+
 resource "kubernetes_namespace" "monitoring" {
   depends_on = [
     var.eks_cluster_id
