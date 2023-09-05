@@ -8,6 +8,24 @@ resource "kubernetes_namespace" "monitoring" {
   }
 }
 
+resource "null_resource" "kubectl_apply" {
+  depends_on = [kubernetes_namespace.monitoring]
+
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+
+  provisioner "local-exec" {
+    command = "kubectl apply -k github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
+  }
+  provisioner "local-exec" {
+    command = "kubectl apply -f github.com/theArcianCoder/helm-volume/blob/main/pv.yaml -n monitoring"
+  }
+  provisioner "local-exec" {
+    command = "kubectl apply -f https://github.com/theArcianCoder/helm-volume/blob/main/pvc.yaml -n monitoring"
+  }
+}
+
 resource "helm_release" "kube-prometheus" {
   depends_on = [
     kubernetes_namespace.monitoring
