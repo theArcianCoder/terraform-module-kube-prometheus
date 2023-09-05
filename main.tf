@@ -19,10 +19,10 @@ resource "null_resource" "kubectl_apply" {
     command = "kubectl apply -k github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
   }
   provisioner "local-exec" {
-    command = "kubectl apply -f github.com/theArcianCoder/helm-volume/blob/main/pv.yaml -n monitoring"
+    command = "kubectl apply -f https://raw.githubusercontent.com/theArcianCoder/helm-volume/blob/main/pv.yaml -n monitoring"
   }
   provisioner "local-exec" {
-    command = "kubectl apply -f https://github.com/theArcianCoder/helm-volume/blob/main/pvc.yaml -n monitoring"
+    command = "kubectl apply -f https://raw.githubusercontent.com/helm-volume/blob/main/pvc.yaml -n monitoring"
   }
 }
 
