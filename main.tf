@@ -20,6 +20,7 @@ resource "null_resource" "kubectl_apply" {
   }
   provisioner "local-exec" {
     command = "kubectl apply -f https://raw.githubusercontent.com/theArcianCoder/helm-volume/main/pv.yaml -n monitoring"
+  }
   provisioner "local-exec" {
     command = "kubectl apply -f https://raw.githubusercontent.com/theArcianCoder/helm-volume/main/pvc.yaml -n monitoring"
   }
@@ -27,7 +28,7 @@ resource "null_resource" "kubectl_apply" {
 
 resource "helm_release" "kube-prometheus" {
   depends_on = [
-    kubernetes_namespace.monitoring
+    null_resource.kubectl_apply
   ]
 
   name       = var.stack_name
