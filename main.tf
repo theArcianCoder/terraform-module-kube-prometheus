@@ -40,6 +40,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: kube-prometheus-stack-pv
+  namespace: monitoring
 spec:
   capacity:
     storage: 10Gi
@@ -59,6 +60,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: kube-prometheus-stack-pvc
+  namespace: monitoring
 spec:
   accessModes:
     - ReadWriteOnce
