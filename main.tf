@@ -53,7 +53,7 @@ YAML
 }
 
 resource "kubectl_manifest" "pvc" {
-  depends_on = [kubernetes_manifest.pv]
+  depends_on = [kubectl_manifest.pv]
   yaml_body = <<YAML
 apiVersion: v1
 kind: PersistentVolumeClaim
