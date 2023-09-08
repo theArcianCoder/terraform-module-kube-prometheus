@@ -117,4 +117,12 @@ resource "helm_release" "kube-prometheus" {
     name  = "grafana.persistentVolume.existingClaim"
     value = "kube-prometheus-stack-pvc"
   }
+  set {
+    name  = "additionalScrapeConfigs[0].static_configs[0].targets[0]"
+    value = "var.target1"
+  }
+  set {
+    name  = "additionalScrapeConfigs[0].static_configs[0].targets[1]"
+    value = "var.target2"
+  }
 }
