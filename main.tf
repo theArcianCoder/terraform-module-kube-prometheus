@@ -129,12 +129,24 @@ resource "helm_release" "kube-prometheus" {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
     value = "${var.az}"
   }
+   set {
+    name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].job_name"
+    value = "Elastic-Mongo-Exporter"
+  }
+  set {
+    name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].scrape_interval"
+    value = "5m"
+  }
+  set {
+    name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].scrape_timeout"
+    value = "1m"
+  }
   set {
     name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[0]"
-    value = "127.0.0.1:9114"
+    value = "${var.target1}"
   }
   set {
     name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[1]"
-    value = "127.0.0.1:9126"
+    value = "${var.target2}"
   }
 }
