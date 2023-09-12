@@ -118,7 +118,7 @@ resource "helm_release" "kube-prometheus" {
     value = "kube-prometheus-stack-pvc"
   }
   set {
-    name  = "prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[0]"
+    name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[0]"
     value = "var.target1"
   }
   set {
