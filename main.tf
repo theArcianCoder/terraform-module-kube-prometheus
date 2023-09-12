@@ -122,11 +122,11 @@ resource "helm_release" "kube-prometheus" {
     value = "var.target1"
   }
   set {
-    name  = "prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[1]"
+    name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[1]"
     value = "var.target2"
   }
   set {
-    name  = "prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[1]"
+    name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[1]"
     value = "var.az"
   }
 }
