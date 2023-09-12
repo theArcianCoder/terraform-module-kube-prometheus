@@ -118,15 +118,15 @@ resource "helm_release" "kube-prometheus" {
     value = "kube-prometheus-stack-pvc"
   }
   set {
-    name  = "prometheus.spec.additionalScrapeConfigs[0].static_configs[0].targets[0]"
-    value = var.target1
+    name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[0]"
+    value = "${var.target1}"
   }
   set {
     name  = "prometheus.spec.additionalScrapeConfigs[0].static_configs[0].targets[1]"
-    value = var.target2
+    value = "${var.target2}"
   }
   set {
     name  = "prometheus.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[1]"
-    value = var.az
+    value = "${var.az}"
   }
 }
