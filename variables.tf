@@ -24,3 +24,7 @@ variable "target2" {
   description = "The second target IP and port"
   default     = "18.236.158.154:9216"
 }
+variable "az" {
+  description = "Value of the az for the prometheus pod to be deployed in"
+}
+
