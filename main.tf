@@ -126,7 +126,7 @@ resource "helm_release" "kube-prometheus" {
     value = var.target2
   }
   set {
-    name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
+    name  = "prometheus.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[1]"
     value = var.az
   }
 }
