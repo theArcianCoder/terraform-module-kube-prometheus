@@ -161,11 +161,11 @@ metadata:
   namespace: ${var.namespace}
 data:
   grafana.ini: |
-      paths:
-    data: /var/lib/grafana/
-    logs: /var/log/grafana
-    plugins: /var/lib/grafana/plugins
-    provisioning: /etc/grafana/provisioning
+    paths:
+      data: /var/lib/grafana/
+      logs: /var/log/grafana
+      plugins: /var/lib/grafana/plugins
+      provisioning: /etc/grafana/provisioning
     analytics:
       check_for_updates: true
     log:
