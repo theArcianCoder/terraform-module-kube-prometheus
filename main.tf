@@ -150,7 +150,6 @@ resource "helm_release" "kube-prometheus" {
     value = "${var.target2}"
   }
 }
-
 resource "kubectl_manifest" "grafana-config" {
   depends_on = [helm_release.kube-prometheus]
   yaml_body = <<YAML
