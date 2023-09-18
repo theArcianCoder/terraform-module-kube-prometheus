@@ -150,7 +150,7 @@ resource "helm_release" "kube-prometheus" {
     value = "${var.target2}"
   }
 }
-resource "kubectl_manifest" "grafana-config" {
+resource "kubectl_manifest" "grafanaconfig" {
   depends_on = [helm_release.kube-prometheus]
   yaml_body = <<YAML
 apiVersion: v1
@@ -184,7 +184,7 @@ data:
 YAML
 }
 
-resource "kubectl_manifest" "grafana-config-binding" {
+resource "kubectl_manifest" "grafanaconfigbinding" {
   depends_on = [kubectl_manifest.grafana-config]
   yaml_body = <<YAML
 apiVersion: apps/v1
