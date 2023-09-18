@@ -185,7 +185,7 @@ YAML
 }
 
 resource "kubectl_manifest" "grafanaconfigbinding" {
-  depends_on = [kubectl_manifest.grafana-config]
+  depends_on = [kubectl_manifest.grafanaconfig]
   yaml_body = <<YAML
 apiVersion: apps/v1
 kind: Deployment
