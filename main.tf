@@ -150,3 +150,64 @@ resource "helm_release" "kube-prometheus" {
     value = "${var.target2}"
   }
 }
+
+resource "kubectl_manifest" "grafana-config" {
+  depends_on = [helm_release.kube-prometheus]
+  yaml_body = <<YAML
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: ${var.namespace}
+data:
+  grafana.ini: |
+    paths:
+      data: /var/lib/grafana/
+      logs: /var/log/grafana
+      plugins: /var/lib/grafana/plugins
+      provisioning: /etc/grafana/provisioning
+    analytics:
+      check_for_updates: true
+    log:
+      mode: console
+    grafana_net:
+      url: https://grafana.net
+    server:
+      domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ .Values.ingress.hosts | first }}{{ else }}''{{ end }}"
+    database:
+       type: mysql # or postgres, depending on your database
+       host: grafana.clfzuk218kme.us-east-2.rds.amazonaws.com:3306
+       name: grafana_db
+       user: admin 
+       password = admin123
+
+    # Add any additional Grafana configuration options here as needed
+YAML
+}
+
+resource "kubectl_manifest" "grafana-config-binding" {
+  depends_on = [kubectl_manifest.grafana-config]
+  yaml_body = <<YAML
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${var.stack_name}-grafana
+  namespace: ${var.namespace}
+spec:
+  template:
+    metadata:
+      annotations:
+        prometheus.io/probe: "grafana"
+    spec:
+      volumes:
+        - name: grafana-config-volume
+          configMap:
+            name: grafana-config
+      containers:
+        - name: grafana
+          volumeMounts:
+            - name: grafana-config-volume
+              mountPath: /etc/grafana
+              readOnly: true
+YAML
+} 
