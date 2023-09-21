@@ -10,8 +10,11 @@ variable "stack_name" {
   description = "The name of the Helm chart release."
   type        = string
 }
-variable "ebs_volume_id" {
+variable "ebs_volume_id1" {
   description = "The ID of the ebs volume."
+}
+variable "ebs_volume_id2" {
+  description = "The ID of the ebs volume for grafana."
 }
 variable "cluster_name" {
   description = "Name of the EKS cluster"

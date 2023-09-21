@@ -33,7 +33,7 @@ resource "kubernetes_namespace" "monitoring" {
   }
 }
 
-resource "kubectl_manifest" "pv" {
+resource "kubectl_manifest" "pv-prometheus" {
   depends_on = [kubernetes_namespace.monitoring]
   yaml_body = <<YAML
 apiVersion: v1
@@ -48,13 +48,33 @@ spec:
     - ReadWriteOnce
   storageClassName: "gp2"  # Update with the appropriate StorageClass name
   awsElasticBlockStore:
-    volumeID: ${var.ebs_volume_id}  # Replace with your EBS volume ID
+    volumeID: ${var.ebs_volume_id1}  # Replace with your EBS volume ID
     fsType: ext4
 YAML
 }
 
-resource "kubectl_manifest" "pvc" {
-  depends_on = [kubectl_manifest.pv]
+resource "kubectl_manifest" "pv-grafana" {
+  depends_on = [kubernetes_namespace.monitoring]
+  yaml_body = <<YAML
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kube-grafana-stack-pv
+  namespace: monitoring
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"  # Update with the appropriate StorageClass name
+  awsElasticBlockStore:
+    volumeID: ${var.ebs_volume_id2}  # Replace with your EBS volume ID
+    fsType: ext4
+YAML
+}
+
+resource "kubectl_manifest" "pvc-prometheus" {
+  depends_on = [kubectl_manifest.pv-prometheus]
   yaml_body = <<YAML
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -71,9 +91,28 @@ spec:
 YAML
 }
 
+resource "kubectl_manifest" "pvc-grafana" {
+  depends_on = [kubectl_manifest.pv-grafana]
+  yaml_body = <<YAML
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kube-grafana-stack-pvc
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: kube-grafana-stack-pv
+YAML
+}
+
+
 resource "helm_release" "kube-prometheus" {
   depends_on = [
-    kubectl_manifest.pvc
+    kubectl_manifest.pvc-grafana
   ]
 
   name       = var.stack_name
@@ -113,10 +152,7 @@ resource "helm_release" "kube-prometheus" {
     name  = "server.persistentVolume.existingClaim"
     value = "kube-prometheus-stack-pvc"
   }
-  set {
-    name  = "grafana.persistentVolume.existingClaim"
-    value = "kube-prometheus-stack-pvc"
-  }
+ 
   set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key"
     value = "topology.kubernetes.io/zone"
@@ -127,6 +163,18 @@ resource "helm_release" "kube-prometheus" {
   }
   set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
+    value = "${var.az}"
+  }
+  set {
+    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key"
+    value = "topology.kubernetes.io/zone"
+  }
+  set {
+    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator"
+    value = "In"
+  }
+  set {
+    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
     value = "${var.az}"
   }
    set {
