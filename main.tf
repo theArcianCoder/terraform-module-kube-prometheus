@@ -71,24 +71,9 @@ spec:
 YAML
 }
 
-resource "kubectl_manifest" "StorageClass" {
-  depends_on = [kubectl_manifest.pvc]
-  yaml_body = <<YAML
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: grafana-persistence
-  namespace: monitoring
-provisioner: kubernetes.io/aws-ebs
-parameters:
-  type: gp2  # Adjust this to the desired EBS volume type
-reclaimPolicy: Retain  # Set this to Retain if you want to keep EBS volumes after PVC deletion
-YAML
-}
-
 resource "helm_release" "kube-prometheus" {
   depends_on = [
-    kubectl_manifest.StorageClass
+    kubectl_manifest.pvc
   ]
 
   name       = var.stack_name
@@ -126,6 +111,10 @@ resource "helm_release" "kube-prometheus" {
   }
   set {
     name  = "server.persistentVolume.existingClaim"
+    value = "kube-prometheus-stack-pvc"
+  }
+  set {
+    name  = "grafana.persistentVolume.existingClaim"
     value = "kube-prometheus-stack-pvc"
   }
   set {
