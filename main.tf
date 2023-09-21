@@ -43,7 +43,7 @@ metadata:
   namespace: monitoring
 spec:
   capacity:
-    storage: 10Gi
+    storage: 80Gi
   accessModes:
     - ReadWriteOnce
   storageClassName: "gp2"  # Update with the appropriate StorageClass name
@@ -63,7 +63,7 @@ metadata:
   namespace: monitoring
 spec:
   capacity:
-    storage: 10Gi
+    storage: 80Gi
   accessModes:
     - ReadWriteOnce
   storageClassName: "gp2"  # Update with the appropriate StorageClass name
