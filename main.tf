@@ -129,10 +129,6 @@ resource "helm_release" "kube-prometheus" {
     value = "kube-prometheus-stack-pvc"
   }
   set {
-    name  = "grafana.persistentVolume.existingClaim"
-    value = "kube-prometheus-stack-pvc"
-  }
-  set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key"
     value = "topology.kubernetes.io/zone"
   }
