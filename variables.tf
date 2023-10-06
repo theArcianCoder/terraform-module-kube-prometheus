@@ -19,11 +19,11 @@ variable "ebs_volume_id2" {
 variable "cluster_name" {
   description = "Name of the EKS cluster"
 }
-variable "target1" {
+variable "mongo_db_expo_ip" {
   description = "The first target IP and port"
   default     = "18.236.158.154:9114"
 }
-variable "target2" {
+variable "elasticsearch_expo_ip" {
   description = "The second target IP and port"
   default     = "18.236.158.154:9216"
 }
