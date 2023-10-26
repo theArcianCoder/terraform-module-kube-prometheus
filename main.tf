@@ -4,18 +4,23 @@ terraform {
       source  = "gavinbunney/kubectl"
       version = ">= 1.7.0"
     }
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 3.0.0"
+    }
   }
 }
 
-provider "kubectl" {  
+provider "kubectl" {
   host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data) 
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
   exec {
-        api_version = "client.authentication.k8s.io/v1beta1"
-        command     = "aws"
-        args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
-      }
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
+  }
 }
+
 data "aws_eks_cluster" "cluster" {
   name = var.cluster_name
 }
@@ -23,9 +28,33 @@ data "aws_eks_cluster" "cluster" {
 data "aws_eks_cluster_auth" "cluster" {
   name = var.cluster_name
 }
+
+resource "aws_ebs_volume" "prometheus_volume" {
+  count             = 1  # Create 1 EBS volume for Prometheus
+  availability_zone = var.az  # Use the AZ specified in the 'az' variable
+  size              = 80  # Specify the size of the EBS volume for Prometheus
+  type              = "gp2"  # Modify the type as needed
+
+  tags = {
+    Name = "prometheus-data-volume"
+  }
+}
+
+resource "aws_ebs_volume" "grafana_volume" {
+  count             = 1  # Create 1 EBS volume for Grafana
+  availability_zone = var.az  # Use the AZ specified in the 'az' variable
+  size              = 80  # Specify the size of the EBS volume for Grafana
+  type              = "gp2"  # Modify the type as needed
+
+  tags = {
+    Name = "grafana-data-volume"
+  }
+}
+
 resource "kubernetes_namespace" "monitoring" {
   depends_on = [
-    var.eks_cluster_id
+    aws_ebs_volume.prometheus_volume,
+    aws_ebs_volume.grafana_volume
   ]
 
   metadata {
@@ -48,7 +77,7 @@ spec:
     - ReadWriteOnce
   storageClassName: "gp2"  # Update with the appropriate StorageClass name
   awsElasticBlockStore:
-    volumeID: ${var.ebs_volume_id1}  # Replace with your EBS volume ID
+    volumeID: aws_ebs_volume.prometheus_volume[0].id  # Use the EBS volume for Prometheus
     fsType: ext4
 YAML
 }
@@ -68,55 +97,18 @@ spec:
     - ReadWriteOnce
   storageClassName: "gp2"  # Update with the appropriate StorageClass name
   awsElasticBlockStore:
-    volumeID: ${var.ebs_volume_id2}  # Replace with your EBS volume ID
+    volumeID: aws_ebs_volume.grafana_volume[0].id  # Use the EBS volume for Grafana
     fsType: ext4
 YAML
 }
 
-resource "kubectl_manifest" "pvc-prometheus" {
-  depends_on = [kubectl_manifest.pv-prometheus]
-  yaml_body = <<YAML
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kube-prometheus-stack-pvc
-  namespace: monitoring
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  volumeName: kube-prometheus-stack-pv
-YAML
-}
-
-resource "kubectl_manifest" "pvc-grafana" {
-  depends_on = [kubectl_manifest.pv-grafana]
-  yaml_body = <<YAML
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kube-grafana-stack-pvc
-  namespace: monitoring
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  volumeName: kube-grafana-stack-pv
-YAML
-}
-
-
 resource "helm_release" "kube-prometheus" {
   depends_on = [
-    kubectl_manifest.pvc-grafana
+    kubectl_manifest.pv-grafana
   ]
 
   name       = var.stack_name
-  namespace  = var.namespace    
+  namespace  = var.namespace
   repository = "https://raw.githubusercontent.com/theArcianCoder/helm-chart-ttn/main"
   chart      = "kube-prometheus-stack"
 
@@ -144,39 +136,32 @@ resource "helm_release" "kube-prometheus" {
     name  = "grafana.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/healthcheck-protocol"
     value = "HTTP"
   }
+
   set {
     name  = "alertmanager.persistentVolume.existingClaim"
     value = "kube-prometheus-stack-pvc"
   }
+
   set {
     name  = "server.persistentVolume.existingClaim"
     value = "kube-prometheus-stack-pvc"
   }
- 
+
   set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key"
     value = "topology.kubernetes.io/zone"
   }
+
   set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator"
     value = "In"
   }
+
   set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
     value = "${var.az}"
   }
-  set {
-    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key"
-    value = "topology.kubernetes.io/zone"
-  }
-  set {
-    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator"
-    value = "In"
-  }
-  set {
-    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
-    value = "${var.az}"
-  }
+
    set {
     name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].job_name"
     value = "Elastic-Mongo-Exporter"
