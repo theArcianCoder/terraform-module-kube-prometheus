@@ -30,10 +30,10 @@ data "aws_eks_cluster_auth" "cluster" {
 }
 
 resource "aws_ebs_volume" "prometheus_volume" {
-  count             = 1  # Create 1 EBS volume for Prometheus
-  availability_zone = var.az  # Use the AZ specified in the 'az' variable
-  size              = 80  # Specify the size of the EBS volume for Prometheus
-  type              = "gp2"  # Modify the type as needed
+  count             = 1
+  availability_zone = var.az
+  size              = 80
+  type              = "gp2"
 
   tags = {
     Name = "prometheus-data-volume"
@@ -41,10 +41,10 @@ resource "aws_ebs_volume" "prometheus_volume" {
 }
 
 resource "aws_ebs_volume" "grafana_volume" {
-  count             = 1  # Create 1 EBS volume for Grafana
-  availability_zone = var.az  # Use the AZ specified in the 'az' variable
-  size              = 80  # Specify the size of the EBS volume for Grafana
-  type              = "gp2"  # Modify the type as needed
+  count             = 1
+  availability_zone = var.az
+  size              = 80
+  type              = "gp2"
 
   tags = {
     Name = "grafana-data-volume"
@@ -72,13 +72,13 @@ metadata:
   namespace: monitoring
 spec:
   capacity:
-    storage: 80Gi
+    storage: "30Gi"  # Corrected the storage size
   accessModes:
     - ReadWriteOnce
-  storageClassName: "gp2"  # Update with the appropriate StorageClass name
+  storageClassName: "gp2"
   awsElasticBlockStore:
-    volumeID: aws_ebs_volume.prometheus_volume[0].id  # Use the EBS volume for Prometheus
-    fsType: ext4
+    volumeID: "${aws_ebs_volume.prometheus_volume[0].id}"  # Corrected the reference to the EBS volume ID
+    fsType: "ext4"
 YAML
 }
 
@@ -92,13 +92,13 @@ metadata:
   namespace: monitoring
 spec:
   capacity:
-    storage: 80Gi
+    storage: "30Gi"  # Corrected the storage size
   accessModes:
     - ReadWriteOnce
-  storageClassName: "gp2"  # Update with the appropriate StorageClass name
+  storageClassName: "gp2"
   awsElasticBlockStore:
-    volumeID: aws_ebs_volume.grafana_volume[0].id  # Use the EBS volume for Grafana
-    fsType: ext4
+    volumeID: "${aws_ebs_volume.grafana_volume[0].id}"  # Corrected the reference to the EBS volume ID
+    fsType: "ext4"
 YAML
 }
 
@@ -115,8 +115,8 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
-  volumeName: kube-prometheus-stack-pv
+      storage: "10Gi"  # Corrected the storage size
+  volumeName: "kube-prometheus-stack-pv"  # Corrected the reference to the PV name
 YAML
 }
 
@@ -133,8 +133,8 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
-  volumeName: kube-grafana-stack-pv
+      storage: "10Gi"  # Corrected the storage size
+  volumeName: "kube-grafana-stack-pv"  # Corrected the reference to the PV name
 YAML
 }
 
@@ -198,7 +198,7 @@ resource "helm_release" "kube-prometheus" {
     value = "${var.az}"
   }
 
-   set {
+  set {
     name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].job_name"
     value = "Elastic-Mongo-Exporter"
   }
