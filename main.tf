@@ -102,6 +102,42 @@ spec:
 YAML
 }
 
+resource "kubectl_manifest" "pvc-prometheus" {
+  depends_on = [kubectl_manifest.pv-prometheus]
+  yaml_body = <<YAML
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kube-prometheus-stack-pvc
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: kube-prometheus-stack-pv
+YAML
+}
+
+resource "kubectl_manifest" "pvc-grafana" {
+  depends_on = [kubectl_manifest.pv-grafana]
+  yaml_body = <<YAML
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kube-grafana-stack-pvc
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: kube-grafana-stack-pv
+YAML
+}
+
 resource "helm_release" "kube-prometheus" {
   depends_on = [
     kubectl_manifest.pv-grafana
