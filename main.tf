@@ -192,7 +192,18 @@ resource "helm_release" "kube-prometheus" {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
     value = var.az
   }
-
+  set {
+    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key"
+    value = "topology.kubernetes.io/zone"
+  }
+  set {
+    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator"
+    value = "In"
+  }
+  set {
+    name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
+    value = "${var.az}"
+  }
   set {
     name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].job_name"
     value = "Elastic-Mongo-Exporter"
