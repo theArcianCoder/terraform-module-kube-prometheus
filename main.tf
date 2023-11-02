@@ -51,37 +51,35 @@ resource "aws_ebs_volume" "grafana_volume" {
   }
 }
 
+
 resource "kubernetes_namespace" "monitoring" {
   metadata {
     name = var.namespace
   }
 }
 
-resource "kubectl_manifest" "pv-prometheus" {
-  depends_on = [kubernetes_namespace.monitoring, aws_ebs_volume.prometheus_volume]
+data "aws_ebs_volume" "grafana_volume" {
+  most_recent = true
 
-  yaml_body = <<YAML
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: kube-prometheus-stack-pv
-  namespace: monitoring
-spec:
-  capacity:
-    storage: "80Gi"
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: "gp2"
-  awsElasticBlockStore:
-    volumeID: "${aws_ebs_volume.prometheus_volume[0].id}"
-    fsType: "ext4"
-YAML
+  filter {
+    name   = "volume-id"
+    values = [aws_ebs_volume.grafana_volume[0].id]
+  }
+}
+
+data "aws_ebs_volume" "prometheus_volume" {
+  most_recent = true
+
+  filter {
+    name   = "volume-id"
+    values = [aws_ebs_volume.prometheus_volume[0].id]
+  }
 }
 
 resource "kubectl_manifest" "pv-grafana" {
-  depends_on = [kubernetes_namespace.monitoring, aws_ebs_volume.grafana_volume]
+  depends_on = [kubernetes_namespace.monitoring, data.aws_ebs_volume.grafana_volume]
 
-  yaml_body = <<YAML
+  yaml_body = templatefile(<<YAML
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -94,11 +92,34 @@ spec:
     - ReadWriteOnce
   storageClassName: "gp2"
   awsElasticBlockStore:
-    volumeID: "${aws_ebs_volume.grafana_volume[0].id}"
+    volumeID: "${data.aws_ebs_volume.grafana_volume.id}"
     fsType: "ext4"
 YAML
+, {})
 }
 
+
+resource "kubectl_manifest" "pv-prometheus" {
+  depends_on = [kubernetes_namespace.monitoring, data.aws_ebs_volume.prometheus_volume]
+
+  yaml_body = templatefile(<<YAML
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kube-prometheus-stack-pv
+  namespace: monitoring
+spec:
+  capacity:
+    storage: "80Gi"
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "gp2"
+  awsElasticBlockStore:
+    volumeID: "${data.aws_ebs_volume.prometheus_volume.id}"
+    fsType: "ext4"
+YAML
+, {})
+}
 resource "kubectl_manifest" "pvc-prometheus" {
   depends_on = [kubectl_manifest.pv-prometheus]
   yaml_body = <<YAML
