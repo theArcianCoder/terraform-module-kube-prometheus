@@ -79,7 +79,7 @@ data "aws_ebs_volume" "prometheus_volume" {
 resource "kubectl_manifest" "pv-grafana" {
   depends_on = [kubernetes_namespace.monitoring, data.aws_ebs_volume.grafana_volume]
 
-  yaml_body = templatefile(<<YAML
+  yaml_body = <<-YAML
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -95,14 +95,13 @@ spec:
     volumeID: "${data.aws_ebs_volume.grafana_volume.id}"
     fsType: "ext4"
 YAML
-, {})
 }
 
 
 resource "kubectl_manifest" "pv-prometheus" {
   depends_on = [kubernetes_namespace.monitoring, data.aws_ebs_volume.prometheus_volume]
 
-  yaml_body = templatefile(<<YAML
+  yaml_body = <<-YAML
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -118,7 +117,6 @@ spec:
     volumeID: "${data.aws_ebs_volume.prometheus_volume.id}"
     fsType: "ext4"
 YAML
-, {})
 }
 resource "kubectl_manifest" "pvc-prometheus" {
   depends_on = [kubectl_manifest.pv-prometheus]
