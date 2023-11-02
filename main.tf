@@ -73,7 +73,7 @@ spec:
     - ReadWriteOnce
   storageClassName: "gp2"
   awsElasticBlockStore:
-    volumeID: ${aws_ebs_volume.prometheus_volume[0].id}
+    volumeID: ${aws_ebs_volume.prometheus_volume.id}
     fsType: "ext4"
 YAML
 }
@@ -94,7 +94,7 @@ spec:
     - ReadWriteOnce
   storageClassName: "gp2"
   awsElasticBlockStore:
-    volumeID: ${aws_ebs_volume.grafana_volume[0].id}
+    volumeID: ${aws_ebs_volume.grafana_volume.id}
     fsType: "ext4"
 YAML
 }
