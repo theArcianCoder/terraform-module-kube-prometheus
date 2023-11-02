@@ -147,50 +147,42 @@ resource "helm_release" "kube-prometheus" {
     name  = "grafana.ingress.enabled"
     value = "true"
   }
-
   set {
     name  = "grafana.ingress.annotations.kubernetes\\.io/ingress\\.class"
     value = "alb"
   }
-
   set {
     name  = "grafana.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/scheme"
     value = "internet-facing"
   }
-
   set {
     name  = "grafana.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/target-type"
     value = "ip"
   }
-
   set {
     name  = "grafana.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/healthcheck-protocol"
     value = "HTTP"
   }
-
   set {
     name  = "alertmanager.persistentVolume.existingClaim"
     value = "kube-prometheus-stack-pvc"
   }
-
   set {
     name  = "server.persistentVolume.existingClaim"
     value = "kube-prometheus-stack-pvc"
   }
-
+ 
   set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key"
     value = "topology.kubernetes.io/zone"
   }
-
   set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator"
     value = "In"
   }
-
   set {
     name  = "prometheus.prometheusSpec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
-    value = var.az
+    value = "${var.az}"
   }
   set {
     name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key"
@@ -204,7 +196,7 @@ resource "helm_release" "kube-prometheus" {
     name  = "grafana.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]"
     value = "${var.az}"
   }
-  set {
+   set {
     name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].job_name"
     value = "Elastic-Mongo-Exporter"
   }
@@ -218,10 +210,10 @@ resource "helm_release" "kube-prometheus" {
   }
   set {
     name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[0]"
-    value = var.mongo_db_expo_ip
+    value = "${var.mongo_db_expo_ip}"
   }
   set {
     name  = "prometheus.prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[1]"
-    value = var.elasticsearch_expo_ip
+    value = "${var.elasticsearch_expo_ip}"
   }
 }
