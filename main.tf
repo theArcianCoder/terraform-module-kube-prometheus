@@ -33,7 +33,7 @@ resource "aws_ebs_volume" "prometheus_volume" {
   count             = 1
   availability_zone = var.az
   size              = 80
-  type              = "ext4"
+  type              = "gp2"
 
   tags = {
     Name = "prometheus-data-volume"
@@ -44,7 +44,7 @@ resource "aws_ebs_volume" "grafana_volume" {
   count             = 1
   availability_zone = var.az
   size              = 80
-  type              = "ext4"
+  type              = "gp2"
 
   tags = {
     Name = "grafana-data-volume"
