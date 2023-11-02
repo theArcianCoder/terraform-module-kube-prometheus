@@ -57,10 +57,8 @@ resource "kubernetes_namespace" "monitoring" {
   }
 }
 
-resource "kubectl_manifest" "pv-prometheus" {
-  depends_on = [kubernetes_namespace.monitoring, aws_ebs_volume.prometheus_volume]
-
-  yaml_body = <<YAML
+data "template_file" "pv-prometheus" {
+  template = <<-EOT
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -75,13 +73,11 @@ spec:
   awsElasticBlockStore:
     volumeID: "${aws_ebs_volume.prometheus_volume[0].id}"
     fsType: "ext4"
-YAML
+EOT
 }
 
-resource "kubectl_manifest" "pv-grafana" {
-  depends_on = [kubernetes_namespace.monitoring, aws_ebs_volume.grafana_volume]
-
-  yaml_body = <<YAML
+data "template_file" "pv-grafana" {
+  template = <<-EOT
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -96,8 +92,21 @@ spec:
   awsElasticBlockStore:
     volumeID: "${aws_ebs_volume.grafana_volume[0].id}"
     fsType: "ext4"
-YAML
+EOT
 }
+
+resource "kubectl_manifest" "pv-prometheus" {
+  depends_on = [kubernetes_namespace.monitoring, aws_ebs_volume.prometheus_volume]
+
+  yaml_body = data.template_file.pv-prometheus.rendered
+}
+
+resource "kubectl_manifest" "pv-grafana" {
+  depends_on = [kubernetes_namespace.monitoring, aws_ebs_volume.grafana_volume]
+
+  yaml_body = data.template_file.pv-grafana.rendered
+}
+
 
 resource "kubectl_manifest" "pvc-prometheus" {
   depends_on = [kubectl_manifest.pv-prometheus]
