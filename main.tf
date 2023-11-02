@@ -39,9 +39,6 @@ resource "aws_ebs_volume" "prometheus_volume" {
     Name = "prometheus-data-volume"
   }
 }
-output "prometheus_volume_id" {
-  value = aws_ebs_volume.prometheus_volume[0].id
-}
 
 resource "aws_ebs_volume" "grafana_volume" {
   count             = 1
@@ -53,9 +50,7 @@ resource "aws_ebs_volume" "grafana_volume" {
     Name = "grafana-data-volume"
   }
 }
-output "grafana_volume_id" {
-  value = aws_ebs_volume.grafana_volume[0].id
-}
+
 resource "kubernetes_namespace" "monitoring" {
   metadata {
     name = var.namespace
@@ -78,7 +73,7 @@ spec:
     - ReadWriteOnce
   storageClassName: "gp2"
   awsElasticBlockStore:
-    volumeID: ${aws_ebs_volume.prometheus_volume[0].id}
+    volumeID: "${aws_ebs_volume.prometheus_volume[0].id}"
     fsType: "ext4"
 YAML
 }
@@ -99,7 +94,7 @@ spec:
     - ReadWriteOnce
   storageClassName: "gp2"
   awsElasticBlockStore:
-    volumeID: ${aws_ebs_volume.grafana_volume[0].id}
+    volumeID: "${aws_ebs_volume.grafana_volume[0].id}"
     fsType: "ext4"
 YAML
 }
